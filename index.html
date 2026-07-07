@@ -1,45 +1,195 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Доступ к уведомлениям</title>
     <style>
-        body { background: white; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; font-family: sans-serif; }
-        button { padding: 20px 40px; font-size: 24px; border: none; background: #007bff; color: white; border-radius: 12px; cursor: pointer; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0b0b1a;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            padding: 16px;
+        }
+        .card {
+            background: #1a1a2e;
+            padding: 40px 32px;
+            border-radius: 32px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+            text-align: center;
+            max-width: 420px;
+            width: 100%;
+            border: 1px solid #2a2a44;
+        }
+        h1 {
+            font-size: 22px;
+            font-weight: 600;
+            color: #d0d0ff;
+            margin-bottom: 12px;
+        }
+        p {
+            color: #9999bb;
+            font-size: 15px;
+            margin-bottom: 28px;
+            line-height: 1.5;
+        }
+        button {
+            background: #6c5ce7;
+            border: none;
+            color: white;
+            font-weight: 700;
+            font-size: 18px;
+            padding: 16px 32px;
+            border-radius: 60px;
+            cursor: pointer;
+            transition: 0.2s ease;
+            width: 100%;
+            letter-spacing: 0.3px;
+            box-shadow: 0 6px 0 #3a2d8a;
+        }
+        button:hover {
+            background: #7b6cf5;
+            transform: scale(1.02);
+        }
+        button:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #3a2d8a;
+        }
+        #status {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #88dd88;
+            word-break: break-all;
+            background: #0f0f20;
+            padding: 12px;
+            border-radius: 16px;
+            display: none;
+            border: 1px solid #2a2a50;
+        }
+        #tokenArea {
+            margin-top: 16px;
+            background: #0f0f20;
+            border-radius: 16px;
+            padding: 14px;
+            border: 1px solid #2a2a50;
+            display: none;
+        }
+        #tokenArea textarea {
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: #bbddbb;
+            font-size: 12px;
+            resize: none;
+            height: 70px;
+            outline: none;
+            font-family: monospace;
+        }
+        .copy-btn {
+            background: #2a2a50;
+            border: none;
+            color: #ccc;
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 13px;
+            margin-top: 8px;
+            cursor: pointer;
+        }
+        .copy-btn:hover {
+            background: #3a3a66;
+        }
+        .hidden {
+            display: none !important;
+        }
     </style>
 </head>
 <body>
-    <button onclick="subscribe()">✅ Разрешить уведомления</button>
-    <script>
-        async function subscribe() {
-            if (!('serviceWorker' in navigator)) {
-                alert('Service Worker не поддерживается');
-                return;
-            }
+<div class="card">
+    <h1>🔔 Уведомления</h1>
+    <p>Нажмите кнопку, чтобы разрешить получение уведомлений.<br>После этого вы получите токен для отправки.</p>
 
-            // 1. Регистрируем SW
+    <button id="subscribeBtn">✅ Разрешить</button>
+
+    <div id="status">⏳ Подписка...</div>
+
+    <div id="tokenArea">
+        <label style="color:#aaa; font-size:13px;">Ваш токен (скопируйте и отправьте):</label>
+        <textarea id="tokenOutput" readonly></textarea>
+        <button class="copy-btn" id="copyTokenBtn">📋 Копировать</button>
+    </div>
+</div>
+
+<script>
+    // ПУБЛИЧНЫЙ VAPID-КЛЮЧ (можно использовать для тестов)
+    const VAPID_PUBLIC_KEY = 'BEl62jU2hBmQ6wXqZ3fN7yV5pR8sK1tL4oW9xM0cA3vF6dS8gJ2hN5bR7yU9';
+
+    const subscribeBtn = document.getElementById('subscribeBtn');
+    const statusDiv = document.getElementById('status');
+    const tokenArea = document.getElementById('tokenArea');
+    const tokenOutput = document.getElementById('tokenOutput');
+    const copyBtn = document.getElementById('copyTokenBtn');
+
+    subscribeBtn.addEventListener('click', async () => {
+        statusDiv.style.display = 'block';
+        statusDiv.textContent = '⏳ Проверка Service Worker...';
+
+        if (!('serviceWorker' in navigator)) {
+            statusDiv.textContent = '❌ Ваш браузер не поддерживает Service Worker.';
+            return;
+        }
+
+        try {
+            // 1. Регистрируем Service Worker
             const reg = await navigator.serviceWorker.register('sw.js');
+            await navigator.serviceWorker.ready;
+
+            statusDiv.textContent = '⏳ Запрос разрешения...';
 
             // 2. Запрашиваем разрешение
             const perm = await Notification.requestPermission();
             if (perm !== 'granted') {
-                alert('Разрешение не получено');
+                statusDiv.textContent = '❌ Разрешение не получено. Повторите.';
                 return;
             }
 
-            // 3. Генерируем VAPID-ключ (временно используем публичный)
-            const vapidKey = 'BOtV7FzF...'; // замените на свой сгенерированный в консоли браузера
+            statusDiv.textContent = '⏳ Подписка на push...';
 
-            // 4. Подписываемся на push
+            // 3. Подписываемся
             const sub = await reg.pushManager.subscribe({
                 userVisibleOnly: true,
-                applicationServerKey: vapidKey
+                applicationServerKey: VAPID_PUBLIC_KEY
             });
 
-            // 5. Показываем токен
-            alert('Ваш токен:\n' + sub.toJSON().endpoint);
-            document.body.innerHTML = ''; // белый экран
+            // 4. Показываем токен
+            const token = sub.toJSON().endpoint;
+            tokenOutput.value = token;
+            tokenArea.style.display = 'block';
+            statusDiv.textContent = '✅ Готово! Скопируйте токен.';
+            subscribeBtn.textContent = '✅ Подписка активна';
+            subscribeBtn.disabled = true;
+
+        } catch (err) {
+            statusDiv.textContent = '❌ Ошибка: ' + err.message;
+            console.error(err);
         }
-    </script>
+    });
+
+    // Копирование токена
+    copyBtn.addEventListener('click', () => {
+        tokenOutput.select();
+        navigator.clipboard?.writeText(tokenOutput.value).then(() => {
+            copyBtn.textContent = '✅ Скопировано!';
+            setTimeout(() => copyBtn.textContent = '📋 Копировать', 2000);
+        }).catch(() => {
+            document.execCommand('copy');
+            copyBtn.textContent = '✅ Скопировано!';
+            setTimeout(() => copyBtn.textContent = '📋 Копировать', 2000);
+        });
+    });
+</script>
 </body>
 </html>
