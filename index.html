@@ -3,193 +3,339 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Доступ к уведомлениям</title>
+    <title>СкачайМакс | Генератор QR</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
-            background: #0b0b1a;
+            background: linear-gradient(145deg, #1a1e2c, #2b3042);
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-family: 'Segoe UI', system-ui, sans-serif;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
             padding: 16px;
         }
+
         .card {
-            background: #1a1a2e;
-            padding: 40px 32px;
-            border-radius: 32px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 56px;
+            padding: 32px 28px 40px;
+            max-width: 540px;
+            width: 100%;
+            box-shadow: 0 25px 50px -8px rgba(0, 0, 0, 0.6), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 215, 0, 0.15);
+        }
+
+        .header {
             text-align: center;
-            max-width: 420px;
-            width: 100%;
-            border: 1px solid #2a2a44;
-        }
-        h1 {
-            font-size: 22px;
-            font-weight: 600;
-            color: #d0d0ff;
-            margin-bottom: 12px;
-        }
-        p {
-            color: #9999bb;
-            font-size: 15px;
             margin-bottom: 28px;
-            line-height: 1.5;
         }
-        button {
-            background: #6c5ce7;
-            border: none;
-            color: white;
+
+        .header h1 {
+            font-size: 2.4rem;
             font-weight: 700;
-            font-size: 18px;
-            padding: 16px 32px;
-            border-radius: 60px;
-            cursor: pointer;
-            transition: 0.2s ease;
-            width: 100%;
-            letter-spacing: 0.3px;
-            box-shadow: 0 6px 0 #3a2d8a;
+            letter-spacing: 1px;
+            background: linear-gradient(135deg, #f9e05d, #ffb347);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
         }
-        button:hover {
-            background: #7b6cf5;
-            transform: scale(1.02);
+
+        .header p {
+            color: #b9c2d9;
+            font-size: 0.95rem;
+            margin-top: 6px;
+            opacity: 0.8;
         }
-        button:active {
-            transform: translateY(4px);
-            box-shadow: 0 2px 0 #3a2d8a;
+
+        .qr-wrapper {
+            background: #ffffff;
+            padding: 24px;
+            border-radius: 40px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+            margin-bottom: 28px;
+            display: flex;
+            justify-content: center;
+            border: 2px solid rgba(255, 215, 0, 0.2);
         }
-        #status {
-            margin-top: 20px;
-            font-size: 14px;
-            color: #88dd88;
-            word-break: break-all;
-            background: #0f0f20;
-            padding: 12px;
-            border-radius: 16px;
-            display: none;
-            border: 1px solid #2a2a50;
+
+        #qrcode {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            width: fit-content;
         }
-        #tokenArea {
-            margin-top: 16px;
-            background: #0f0f20;
-            border-radius: 16px;
-            padding: 14px;
-            border: 1px solid #2a2a50;
-            display: none;
+
+        #qrcode canvas {
+            display: block !important;
+            max-width: 100%;
+            height: auto;
+            border-radius: 24px;
         }
-        #tokenArea textarea {
-            width: 100%;
-            background: transparent;
-            border: none;
-            color: #bbddbb;
-            font-size: 12px;
-            resize: none;
+
+        .logo-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 50%;
+            width: 70px;
             height: 70px;
-            outline: none;
-            font-family: monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+            border: 3px solid #ffd966;
+            pointer-events: none;
+            font-weight: 800;
+            font-size: 1.8rem;
+            color: #1a1e2c;
+            background: #f9e05d;
+            text-transform: uppercase;
+            letter-spacing: -0.5px;
         }
-        .copy-btn {
-            background: #2a2a50;
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 60px;
+            padding: 6px 6px 6px 20px;
+            margin-bottom: 28px;
+            border: 1px solid rgba(255, 215, 0, 0.1);
+        }
+
+        .info-row .label {
+            color: #ccd6f0;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .info-row .badge {
+            background: #ffd966;
+            color: #1a1e2c;
+            padding: 8px 18px;
+            border-radius: 40px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            box-shadow: 0 0 12px rgba(255, 215, 0, 0.3);
+        }
+
+        .actions {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 6px;
+        }
+
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 16px 20px;
             border: none;
-            color: #ccc;
-            padding: 6px 14px;
-            border-radius: 30px;
-            font-size: 13px;
-            margin-top: 8px;
+            border-radius: 60px;
+            font-weight: 600;
+            font-size: 1.1rem;
             cursor: pointer;
+            transition: 0.2s;
+            background: #2f354a;
+            color: #eef3ff;
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.04);
         }
-        .copy-btn:hover {
-            background: #3a3a66;
+
+        .btn-primary {
+            background: linear-gradient(145deg, #f7d44a, #f0b33c);
+            color: #1a1e2c;
+            font-weight: 700;
+            border: 1px solid #ffe28a;
+            box-shadow: 0 8px 20px rgba(255, 215, 0, 0.25);
         }
-        .hidden {
-            display: none !important;
+
+        .btn-primary:hover {
+            transform: scale(1.02);
+            background: linear-gradient(145deg, #ffe066, #f7b83a);
+            box-shadow: 0 12px 28px rgba(255, 215, 0, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: #ffd966;
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        .footer-note {
+            text-align: center;
+            margin-top: 24px;
+            font-size: 0.75rem;
+            color: #6a7292;
+            border-top: 1px solid rgba(255, 215, 0, 0.08);
+            padding-top: 18px;
+        }
+
+        .footer-note span {
+            color: #ffd966;
+            font-weight: 600;
+        }
+
+        @media (max-width: 480px) {
+            .card { padding: 20px 16px; }
+            .header h1 { font-size: 2rem; }
+            .logo-overlay { width: 56px; height: 56px; font-size: 1.4rem; }
+            .info-row { padding-left: 14px; flex-wrap: wrap; gap: 6px; }
+            .btn { font-size: 1rem; padding: 14px 16px; }
         }
     </style>
 </head>
 <body>
-<div class="card">
-    <h1>🔔 Уведомления</h1>
-    <p>Нажмите кнопку, чтобы разрешить получение уведомлений.<br>После этого вы получите токен для отправки.</p>
+    <div class="card">
+        <div class="header">
+            <h1>📲 СкачайМакс</h1>
+            <p>Генератор QR для Макса</p>
+        </div>
 
-    <button id="subscribeBtn">✅ Разрешить</button>
+        <div class="qr-wrapper">
+            <div id="qrcode" style="position: relative; display: inline-block;">
+                <div class="logo-overlay">
+                    <span>M</span>
+                </div>
+            </div>
+        </div>
 
-    <div id="status">⏳ Подписка...</div>
+        <div class="info-row">
+            <span class="label">⚡ MAX.apk</span>
+            <span class="badge">СкачайМакс</span>
+        </div>
 
-    <div id="tokenArea">
-        <label style="color:#aaa; font-size:13px;">Ваш токен (скопируйте и отправьте):</label>
-        <textarea id="tokenOutput" readonly></textarea>
-        <button class="copy-btn" id="copyTokenBtn">📋 Копировать</button>
+        <div class="actions">
+            <button class="btn btn-primary" id="downloadApkBtn">
+                ⬇️ Скачать MAX.apk
+            </button>
+            <button class="btn btn-secondary" id="downloadQrBtn">
+                🖼️ Сохранить QR (PNG)
+            </button>
+        </div>
+
+        <div class="footer-note">
+            <span>#</span> При сканировании QR — автозагрузка APK
+        </div>
     </div>
-</div>
 
-<script>
-    // ПУБЛИЧНЫЙ VAPID-КЛЮЧ (можно использовать для тестов)
-    const VAPID_PUBLIC_KEY = 'BEl62jU2hBmQ6wXqZ3fN7yV5pR8sK1tL4oW9xM0cA3vF6dS8gJ2hN5bR7yU9';
+    <script>
+        (function() {
+            // ===== НАСТРОЙКА: УКАЖИТЕ ВАШУ ССЫЛКУ НА APK В GITHUB =====
+            // Пример: https://raw.githubusercontent.com/ВАШ_АККАУНТ/ВАШ_РЕПО/ВЕТКА/MAX.apk
+            const APK_DOWNLOAD_URL = 'https://raw.githubusercontent.com/ВАШ_АККАУНТ/ВАШ_РЕПО/main/MAX.apk';
+            // ===========================================================
 
-    const subscribeBtn = document.getElementById('subscribeBtn');
-    const statusDiv = document.getElementById('status');
-    const tokenArea = document.getElementById('tokenArea');
-    const tokenOutput = document.getElementById('tokenOutput');
-    const copyBtn = document.getElementById('copyTokenBtn');
-
-    subscribeBtn.addEventListener('click', async () => {
-        statusDiv.style.display = 'block';
-        statusDiv.textContent = '⏳ Проверка Service Worker...';
-
-        if (!('serviceWorker' in navigator)) {
-            statusDiv.textContent = '❌ Ваш браузер не поддерживает Service Worker.';
-            return;
-        }
-
-        try {
-            // 1. Регистрируем Service Worker
-            const reg = await navigator.serviceWorker.register('sw.js');
-            await navigator.serviceWorker.ready;
-
-            statusDiv.textContent = '⏳ Запрос разрешения...';
-
-            // 2. Запрашиваем разрешение
-            const perm = await Notification.requestPermission();
-            if (perm !== 'granted') {
-                statusDiv.textContent = '❌ Разрешение не получено. Повторите.';
-                return;
+            // Генерация QR-кода
+            const qrContainer = document.getElementById('qrcode');
+            
+            // Очищаем старые canvas, сохраняя логотип
+            const children = qrContainer.children;
+            for (let i = children.length - 1; i >= 0; i--) {
+                const child = children[i];
+                if (!child.classList || !child.classList.contains('logo-overlay')) {
+                    qrContainer.removeChild(child);
+                }
             }
 
-            statusDiv.textContent = '⏳ Подписка на push...';
-
-            // 3. Подписываемся
-            const sub = await reg.pushManager.subscribe({
-                userVisibleOnly: true,
-                applicationServerKey: VAPID_PUBLIC_KEY
+            const qrSize = Math.min(320, window.innerWidth - 80);
+            const qrCode = new QRCode(qrContainer, {
+                text: APK_DOWNLOAD_URL,
+                width: qrSize,
+                height: qrSize,
+                colorDark: "#1a1e2c",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
             });
 
-            // 4. Показываем токен
-            const token = sub.toJSON().endpoint;
-            tokenOutput.value = token;
-            tokenArea.style.display = 'block';
-            statusDiv.textContent = '✅ Готово! Скопируйте токен.';
-            subscribeBtn.textContent = '✅ Подписка активна';
-            subscribeBtn.disabled = true;
+            // Кнопка скачивания APK
+            document.getElementById('downloadApkBtn').addEventListener('click', function(e) {
+                const link = document.createElement('a');
+                link.href = APK_DOWNLOAD_URL;
+                link.download = 'MAX.apk';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
 
-        } catch (err) {
-            statusDiv.textContent = '❌ Ошибка: ' + err.message;
-            console.error(err);
-        }
-    });
+            // Кнопка сохранения QR
+            document.getElementById('downloadQrBtn').addEventListener('click', function() {
+                const canvas = qrContainer.querySelector('canvas');
+                if (!canvas) {
+                    alert('QR-код ещё не загружен');
+                    return;
+                }
 
-    // Копирование токена
-    copyBtn.addEventListener('click', () => {
-        tokenOutput.select();
-        navigator.clipboard?.writeText(tokenOutput.value).then(() => {
-            copyBtn.textContent = '✅ Скопировано!';
-            setTimeout(() => copyBtn.textContent = '📋 Копировать', 2000);
-        }).catch(() => {
-            document.execCommand('copy');
-            copyBtn.textContent = '✅ Скопировано!';
-            setTimeout(() => copyBtn.textContent = '📋 Копировать', 2000);
-        });
-    });
-</script>
+                const overlayCanvas = document.createElement('canvas');
+                const ctx = overlayCanvas.getContext('2d');
+                const size = canvas.width;
+
+                overlayCanvas.width = size;
+                overlayCanvas.height = size;
+
+                ctx.drawImage(canvas, 0, 0, size, size);
+
+                const center = size / 2;
+                const logoRadius = size * 0.14;
+                const gradient = ctx.createRadialGradient(center, center, 0, center, center, logoRadius);
+                gradient.addColorStop(0, '#f9e05d');
+                gradient.addColorStop(1, '#f0b33c');
+                ctx.shadowColor = 'rgba(0,0,0,0.3)';
+                ctx.shadowBlur = 14;
+                ctx.beginPath();
+                ctx.arc(center, center, logoRadius, 0, Math.PI * 2);
+                ctx.fillStyle = gradient;
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                ctx.strokeStyle = '#ffd966';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+
+                ctx.fillStyle = '#1a1e2c';
+                ctx.font = `bold ${logoRadius * 1.1}px 'Segoe UI', system-ui, sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.shadowColor = 'rgba(0,0,0,0.1)';
+                ctx.shadowBlur = 8;
+                ctx.fillText('M', center, center + 2);
+                ctx.shadowBlur = 0;
+
+                const link = document.createElement('a');
+                link.download = 'qrcode_max.png';
+                link.href = overlayCanvas.toDataURL('image/png');
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
+
+            console.log('✅ Генератор "СкачайМакс" запущен');
+            console.log('📱 QR ведёт на: ' + APK_DOWNLOAD_URL);
+        })();
+    </script>
 </body>
 </html>
